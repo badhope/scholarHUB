@@ -1,21 +1,21 @@
 # Dependencies
 node_modules/
 vendor/
-.venv/
-venv/
-env/
+.pnp/
+.pnp.js
 
 # Build output
 dist/
 build/
 out/
 .next/
-.nuxt/
 
 # Environment
 .env
 .env.local
-.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # Logs
 *.log
@@ -43,5 +43,8 @@ coverage/
 
 # Cache
 .cache/
-.parcel-cache/
 .eslintcache
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
