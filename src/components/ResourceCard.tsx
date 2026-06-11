@@ -1,133 +1,91 @@
 import { Link } from 'react-router-dom'
+import { ArrowRight, Bookmark, BookmarkCheck } from 'lucide-react'
 import type { Resource } from '@/types'
-import {
-  TYPE_LABELS,
-  formatAuthors,
-  formatNumber,
-  resourceSummary,
-} from '@/utils/format'
-import { useFavorites, useUI } from '@/store'
-import { Bookmark, BookmarkCheck, ArrowUpRight, Download } from 'lucide-react'
+import { useFavorites } from '@/store'
+import { useT } from '@/i18n/LangProvider'
+import { formatAuthors } from '@/utils/format'
 
 interface ResourceCardProps {
   resource: Resource
-  showPreview?: boolean
   showSummary?: boolean
-  showActions?: boolean
 }
 
-export function ResourceCard({
-  resource,
-  showPreview = true,
-  showSummary = false,
-  showActions = true,
-}: ResourceCardProps) {
+const typeBadgeClass: Record<Resource['type'], string> = {
+  paper: 'border-rule text-ink-soft',
+  dataset: 'border-rule text-ink-soft',
+  book: 'border-rule text-ink-soft',
+  tutorial: 'border-rule text-ink-soft',
+}
+
+export function ResourceCard({ resource, showSummary = false }: ResourceCardProps) {
   const isFav = useFavorites((s) => s.ids.includes(resource.id))
   const toggleFav = useFavorites((s) => s.toggle)
-  const showToast = useUI((s) => s.showToast)
-  const citations = formatNumber(resource.citations)
+  const { t } = useT()
 
-  const onFav = (e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    toggleFav(resource.id)
-    showToast(isFav ? '已移除收藏' : '已加入收藏')
-  }
+  const summary = t('card.summary', {
+    type: t(`type.${resource.type}` as const),
+    year: resource.year,
+    tags: resource.tags.length,
+  })
 
   return (
-    <article
-      className="group border hairline rounded-[2px] p-6 hover:border-ink transition-colors"
-      style={{ borderColor: 'var(--rule)' }}
-    >
-      <div className="flex items-start justify-between gap-4">
-        <Link to={`/resource/${resource.id}`} className="flex-1 min-w-0">
-          <p className="text-mono text-[11px] uppercase tracking-wider2 text-ink-mute mb-2">
-            {TYPE_LABELS[resource.type]} · {resource.year}
-          </p>
-          <h3 className="text-display text-[1.5rem] text-ink leading-snug group-hover:text-moss transition-colors">
-            {resource.title}
-          </h3>
-        </Link>
+    <article className="group relative border hairline rounded-[2px] p-5 hover:border-ink-soft transition-colors">
+      <div className="flex items-baseline justify-between gap-3">
+        <span
+          className={`text-mono text-[10px] uppercase tracking-wider2 px-2 py-0.5 border rounded-[2px] ${typeBadgeClass[resource.type]}`}
+        >
+          {t(`type.${resource.type}` as const)} · {resource.year}
+        </span>
         <button
-          onClick={onFav}
+          onClick={() => toggleFav(resource.id)}
           className="shrink-0 -m-2 p-2 text-ink-mute hover:text-moss transition-colors"
-          aria-label={isFav ? '取消收藏' : '加入收藏'}
-          title={isFav ? '已收藏 · 点击移除' : '收藏'}
+          aria-label={isFav ? t('card.fav.remove') : t('card.fav.add')}
+          title={isFav ? t('card.fav.remove.title') : t('card.fav.add.title')}
         >
           {isFav ? <BookmarkCheck size={16} /> : <Bookmark size={16} />}
         </button>
       </div>
 
-      <p className="mt-3 text-mono text-[12px] text-ink-soft">
-        {formatAuthors(resource.authors)}
-        {resource.venue ? ` · ${resource.venue}` : ''}
+      <h3 className="mt-3 text-display text-xl text-ink leading-snug">
+        <Link
+          to={`/resource/${resource.id}`}
+          className="hover:text-moss transition-colors"
+        >
+          {resource.title}
+        </Link>
+      </h3>
+
+      <p className="mt-2 text-[14px] text-ink-soft">
+        {formatAuthors(resource.authors)} · <em className="not-italic">{resource.venue}</em>
       </p>
 
-      {showPreview && (
-        <p
-          className="mt-4 text-[15px] leading-7 text-ink-soft"
-          style={{
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-          }}
-        >
-          {resource.preview}
-        </p>
-      )}
-
-      <div className="mt-4 flex flex-wrap gap-2">
-        {resource.tags.slice(0, 4).map((tag) => (
-          <span
-            key={tag}
-            className="text-mono text-[10px] uppercase tracking-wider2 px-2 py-0.5 border rounded-[2px]"
-            style={{ borderColor: 'var(--ochre)', color: 'var(--ochre)' }}
-          >
-            {tag}
-          </span>
-        ))}
-      </div>
-
       {showSummary && (
-        <p className="mt-4 text-mono text-[11px] text-ink-mute">
-          {resourceSummary(resource)}
-          {citations ? ` · ${citations} 引用` : ''}
+        <p className="mt-3 text-[14px] leading-6 text-ink-mute line-clamp-2">
+          {summary}
         </p>
       )}
 
-      {showActions && (
-        <div className="mt-5 flex items-center gap-2">
-          {resource.downloadUrl && (
-            <a
-              href={resource.downloadUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-mono text-[11px] uppercase tracking-wider2 border rounded-[2px] hover:border-ink hover:text-ink transition-colors"
-              style={{ borderColor: 'var(--rule)' }}
+      {resource.tags.length > 0 && (
+        <div className="mt-4 flex flex-wrap gap-1.5">
+          {resource.tags.slice(0, 4).map((tag) => (
+            <span
+              key={tag}
+              className="text-mono text-[9px] uppercase tracking-wider2 text-ink-mute"
             >
-              <Download size={12} /> 下载
-            </a>
-          )}
-          {resource.externalUrl && (
-            <a
-              href={resource.externalUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-mono text-[11px] uppercase tracking-wider2 border rounded-[2px] hover:border-ink hover:text-ink transition-colors"
-              style={{ borderColor: 'var(--rule)' }}
-            >
-              <ArrowUpRight size={12} /> 跳转
-            </a>
-          )}
-          <Link
-            to={`/resource/${resource.id}`}
-            className="ml-auto text-mono text-[11px] uppercase tracking-wider2 text-ink-soft hover:text-ink transition-colors"
-          >
-            详情 →
-          </Link>
+              #{tag}
+            </span>
+          ))}
         </div>
       )}
+
+      <div className="mt-4 flex items-center justify-end">
+        <Link
+          to={`/resource/${resource.id}`}
+          className="inline-flex items-center gap-1 text-mono text-[10px] uppercase tracking-wider2 text-ink-soft hover:text-ink transition-colors"
+        >
+          {t('card.details')} <ArrowRight size={11} />
+        </Link>
+      </div>
     </article>
   )
 }

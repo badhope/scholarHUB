@@ -1,86 +1,75 @@
 import { useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
-import { resources } from '@/data/resources'
-import { disciplines, disciplineMap } from '@/data/disciplines'
 import { ResourceCard } from '@/components/ResourceCard'
 import { FilterChips } from '@/components/FilterChips'
-import { typeOptions } from '@/data/filterOptions'
+import { resources } from '@/data/resources'
+import { disciplines } from '@/data/disciplines'
+import { useT } from '@/i18n/LangProvider'
 import type { ResourceType } from '@/types'
 
+type TypeFilter = ResourceType | 'all'
+type DisciplineFilter = string // 'all' or Discipline
+
+const typeOrder: ResourceType[] = ['paper', 'dataset', 'book', 'tutorial']
+
 export function ResourcesPage() {
-  const [params] = useSearchParams()
-  const initialType = (params.get('type') as ResourceType) || ''
-  const [type, setType] = useState<ResourceType | ''>(initialType)
-  const [discipline, setDiscipline] = useState<string>(params.get('discipline') || '')
+  const { t, lang } = useT()
+  const [type, setType] = useState<TypeFilter>('all')
+  const [discipline, setDiscipline] = useState<DisciplineFilter>('all')
 
   const filtered = useMemo(() => {
-    return resources
-      .filter((r) => (type ? r.type === type : true))
-      .filter((r) => (discipline ? r.discipline === discipline : true))
-      .sort((a, b) => b.year - a.year)
+    return resources.filter((r) => {
+      if (type !== 'all' && r.type !== type) return false
+      if (discipline !== 'all' && r.discipline !== discipline) return false
+      return true
+    })
   }, [type, discipline])
 
-  const disciplineOptions = disciplines.map((d) => ({ value: d.slug, label: d.name }))
+  const typeOptions = [
+    { value: 'all' as const, label: t('type.all') },
+    ...typeOrder.map((tp) => ({ value: tp, label: t(`type.${tp}` as const) })),
+  ]
+  const disciplineOptions = [
+    { value: 'all', label: t('type.all') },
+    ...disciplines.map((d) => ({
+      value: d.slug,
+      label: lang === 'en' ? d.nameEn : d.name,
+    })),
+  ]
 
   return (
-    <div className="page-fade mx-auto max-w-column px-6 sm:px-8 py-16">
-      <div className="border-b hairline pb-3 mb-8 flex items-baseline justify-between">
-        <h1 className="text-display text-3xl text-ink">Resources</h1>
-        <span className="text-mono text-[11px] uppercase tracking-wider2 text-ink-mute">
-          {filtered.length} / {resources.length}
-        </span>
+    <div className="page-fade mx-auto max-w-column px-6 sm:px-8 pt-16 pb-32">
+      <header className="border-b hairline pb-6">
+        <h1 className="text-display text-3xl sm:text-4xl text-ink">{t('resources.title')}</h1>
+        <p className="mt-2 text-[16px] leading-7 text-ink-soft">{t('resources.subtitle')}</p>
+        <p className="mt-3 text-mono text-[11px] uppercase tracking-wider2 text-ink-mute">
+          {t('resources.summary', { n: filtered.length })}
+        </p>
+      </header>
+
+      <div className="mt-8 space-y-6">
+        <FilterChips
+          label={t('resources.filter.type')}
+          options={typeOptions}
+          value={type}
+          onChange={(v) => setType(v as TypeFilter)}
+        />
+        <FilterChips
+          label={t('resources.filter.discipline')}
+          options={disciplineOptions}
+          value={discipline}
+          onChange={(v) => setDiscipline(v)}
+        />
       </div>
 
-      <div className="space-y-6">
-        <div>
-          <p className="text-mono text-[11px] uppercase tracking-wider2 text-ink-mute mb-2">
-            Type
-          </p>
-          <FilterChips
-            options={typeOptions}
-            active={type}
-            onChange={(v) => setType(v as ResourceType | '')}
-          />
-        </div>
-
-        <div>
-          <p className="text-mono text-[11px] uppercase tracking-wider2 text-ink-mute mb-2">
-            Discipline
-          </p>
-          <FilterChips
-            options={disciplineOptions}
-            active={discipline}
-            onChange={setDiscipline}
-          />
-        </div>
-      </div>
-
-      <div className="mt-12 space-y-8">
+      <section className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6">
         {filtered.length === 0 ? (
-          <p className="text-mono text-[12px] text-ink-mute py-12 text-center">
-            未找到符合条件的资源,试试清除筛选?
+          <p className="text-ink-mute col-span-2 py-10 text-center text-mono text-[11px] uppercase tracking-wider2">
+            {t('resources.empty')}
           </p>
         ) : (
-          filtered.map((r) => (
-            <ResourceCard
-              key={r.id}
-              resource={r}
-              showPreview
-              showSummary
-              showActions={false}
-            />
-          ))
+          filtered.map((r) => <ResourceCard key={r.id} resource={r} />)
         )}
-      </div>
-
-      {discipline && disciplineMap[discipline] && (
-        <p className="mt-12 text-mono text-[11px] uppercase tracking-wider2 text-ink-mute">
-          当前过滤:{disciplineMap[discipline].name} ·{' '}
-          <button onClick={() => setDiscipline('')} className="underline hover:text-ink">
-            清除
-          </button>
-        </p>
-      )}
+      </section>
     </div>
   )
 }

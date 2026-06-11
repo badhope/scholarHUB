@@ -1,14 +1,16 @@
 import { NavLink, Link, useLocation } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import { Search } from 'lucide-react'
+import { Search, Languages } from 'lucide-react'
 import { useUI } from '@/store'
+import { useT } from '@/i18n/LangProvider'
 
 export function SiteHeader() {
   const { pathname } = useLocation()
   const showToast = useUI((s) => s.showToast)
+  const { t, lang, toggleLang } = useT()
   const [q, setQ] = useState('')
 
-  // 路由变化时若停留在首页,把搜索词同步到 URL,便于分享
+  // When arriving on /, sync search box with ?q=
   useEffect(() => {
     if (pathname === '/') {
       const params = new URLSearchParams(window.location.search)
@@ -17,19 +19,19 @@ export function SiteHeader() {
     }
   }, [pathname])
 
-  const navItems = [
-    { to: '/', label: '首页', labelEn: 'Home' },
-    { to: '/resources', label: '资源', labelEn: 'Resources' },
-    { to: '/favorites', label: '收藏', labelEn: 'Favorites' },
-    { to: '/settings', label: '设置', labelEn: 'Settings' },
-    { to: '/about', label: '关于', labelEn: 'About' },
+  const navItems: { to: string; key: 'nav.home' | 'nav.resources' | 'nav.favorites' | 'nav.settings' | 'nav.about' }[] = [
+    { to: '/', key: 'nav.home' },
+    { to: '/resources', key: 'nav.resources' },
+    { to: '/favorites', key: 'nav.favorites' },
+    { to: '/settings', key: 'nav.settings' },
+    { to: '/about', key: 'nav.about' },
   ]
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     const term = q.trim()
     if (!term) {
-      showToast('请输入关键词')
+      showToast(t('search.empty'))
       return
     }
     window.location.href = `${window.location.pathname}#/search?q=${encodeURIComponent(term)}`
@@ -42,25 +44,37 @@ export function SiteHeader() {
           <Link to="/" className="flex items-baseline gap-3 group">
             <span className="text-display text-2xl text-ink">ScholarHUB</span>
             <span className="text-mono text-[11px] uppercase tracking-wider2 text-ink-mute">
-              Vol. 1 · 2026
+              {t('brand.volume')}
             </span>
           </Link>
 
-          <form
-            onSubmit={onSubmit}
-            className="hidden sm:flex items-center gap-2 border hairline rounded-[2px] px-3 py-1.5 focus-within:border-moss transition-colors"
-            style={{ minWidth: 240 }}
-          >
-            <Search size={14} className="text-ink-mute" />
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="搜索标题、作者、关键词"
-              className="bg-transparent text-sm flex-1 placeholder:text-ink-mute"
-              aria-label="搜索"
-            />
-            <kbd className="text-mono text-[10px] text-ink-mute border border-rule rounded-[2px] px-1 py-0.5 leading-none">/</kbd>
-          </form>
+          <div className="flex items-center gap-3">
+            <form
+              onSubmit={onSubmit}
+              className="hidden sm:flex items-center gap-2 border hairline rounded-[2px] px-3 py-1.5 focus-within:border-moss transition-colors"
+              style={{ minWidth: 240 }}
+            >
+              <Search size={14} className="text-ink-mute" />
+              <input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder={t('search.placeholder')}
+                className="bg-transparent text-sm flex-1 placeholder:text-ink-mute"
+                aria-label={t('search.aria')}
+              />
+              <kbd className="text-mono text-[10px] text-ink-mute border border-rule rounded-[2px] px-1 py-0.5 leading-none">/</kbd>
+            </form>
+
+            <button
+              onClick={toggleLang}
+              className="flex items-center gap-1.5 text-mono text-[11px] uppercase tracking-wider2 text-ink-soft hover:text-ink border hairline rounded-[2px] px-2.5 py-1.5 transition-colors"
+              aria-label={lang === 'en' ? 'Switch to Chinese' : '切换到英文'}
+              title={lang === 'en' ? 'Switch to 中文' : 'Switch to English'}
+            >
+              <Languages size={13} />
+              <span>{lang === 'en' ? 'EN' : '中'}</span>
+            </button>
+          </div>
         </div>
 
         <nav className="flex items-center gap-4 sm:gap-7 pb-4 text-sm overflow-x-auto">
@@ -77,10 +91,7 @@ export function SiteHeader() {
             >
               {({ isActive }) => (
                 <>
-                  <span>{item.label}</span>
-                  <span className="hidden sm:inline ml-2 text-mono text-[10px] uppercase tracking-wider2 text-ink-mute">
-                    {item.labelEn}
-                  </span>
+                  <span>{t(item.key)}</span>
                   <span
                     className={`absolute left-0 -bottom-0.5 h-px bg-moss transition-all ${
                       isActive ? 'w-full' : 'w-0 group-hover:w-full'

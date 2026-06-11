@@ -56,7 +56,7 @@ body,
 }
 
 html, body {
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 body {
@@ -136,7 +136,7 @@ a:focus-visible {
   text-indent: 2em;
 }
 
-/* 折叠/展开动画 */
+/* collapse / expand animation */
 .collapse-panel {
   display: grid;
   grid-template-rows: 0fr;
@@ -154,7 +154,7 @@ a:focus-visible {
   overflow: hidden;
 }
 
-/* 路由淡入 */
+/* route fade-in */
 .page-fade {
   animation: pageFade var(--motion-duration) var(--motion-ease);
 }
@@ -203,7 +203,7 @@ a:focus-visible {
   }
 }
 
-/* 滚动条 */
+/* scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;

@@ -1,8 +1,8 @@
 import { useEffect } from 'react'
 import { useSettings } from '@/store'
 
-function resolveTheme(theme: 'light' | 'dark' | 'system'): 'light' | 'dark' {
-  if (theme === 'system') {
+function resolveTheme(theme: 'light' | 'dark' | 'auto'): 'light' | 'dark' {
+  if (theme === 'auto') {
     if (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
       return 'dark'
     }
@@ -21,7 +21,7 @@ export function useDocumentSettings() {
       root.setAttribute('data-theme', resolved)
     }
     apply()
-    if (theme === 'system') {
+    if (theme === 'auto') {
       const mq = window.matchMedia('(prefers-color-scheme: dark)')
       mq.addEventListener('change', apply)
       return () => mq.removeEventListener('change', apply)
