@@ -63,14 +63,14 @@ export function SiteHeader() {
           </form>
         </div>
 
-        <nav className="flex items-center gap-7 pb-4 text-sm">
+        <nav className="flex items-center gap-4 sm:gap-7 pb-4 text-sm overflow-x-auto">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               end={item.to === '/'}
               className={({ isActive }) =>
-                `group relative pb-1 text-ink-soft hover:text-ink transition-colors ${
+                `group relative pb-1 text-ink-soft hover:text-ink transition-colors whitespace-nowrap ${
                   isActive ? 'text-ink' : ''
                 }`
               }
@@ -78,7 +78,7 @@ export function SiteHeader() {
               {({ isActive }) => (
                 <>
                   <span>{item.label}</span>
-                  <span className="ml-2 text-mono text-[10px] uppercase tracking-wider2 text-ink-mute">
+                  <span className="hidden sm:inline ml-2 text-mono text-[10px] uppercase tracking-wider2 text-ink-mute">
                     {item.labelEn}
                   </span>
                   <span

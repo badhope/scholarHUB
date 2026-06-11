@@ -55,6 +55,10 @@ body,
   height: 100%;
 }
 
+html, body {
+  overflow-x: hidden;
+}
+
 body {
   margin: 0;
   background: var(--paper);
