@@ -21,4 +21,9 @@ keywords:
   - typescript
   - react
 abstract: >-
-  An open shelf of papers, books, and datasets. ScholarHUB 聚合散落在各论文网站、出版社与公开数据平台的可下载资源,按学科与主题归类整理,提供一致的元数据与多格式引用。React 18 + TypeScript + Vite,GitHub Pages 静态托管。
+  An open shelf of papers, books, and datasets. ScholarHUB indexes
+  freely-downloadable resources scattered across preprint servers,
+  publishers, and open data platforms, organised by discipline and
+  topic, with consistent metadata and multi-format citations.
+  Built with React 18 + TypeScript + Vite, statically hosted on
+  GitHub Pages.

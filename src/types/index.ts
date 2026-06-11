@@ -38,12 +38,18 @@ export interface Resource {
 
 export interface DisciplineInfo {
   slug: Discipline
+  /** Display name in the current UI language. Always present in the data file. */
   name: string
+  /** English counterpart, shown when UI is in English. */
   nameEn: string
+  /** Short description in Chinese (used when UI is zh). */
   blurb: string
+  /** Short description in English (used when UI is en). */
+  blurbEn: string
   order: number
 }
 
-export type Theme = 'light' | 'dark' | 'system'
+export type Theme = 'light' | 'dark' | 'auto'
 export type Motion = 'full' | 'reduced' | 'off'
 export type FontSize = 'standard' | 'large'
+export type Lang = 'en' | 'zh'
