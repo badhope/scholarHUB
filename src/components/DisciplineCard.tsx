@@ -19,13 +19,14 @@ export function DisciplineCard({ discipline }: DisciplineCardProps) {
     <section className="border-b hairline">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-baseline justify-between gap-6 py-8 text-left group"
+        className="w-full flex items-baseline justify-between gap-6 py-7 text-left group"
+        aria-expanded={open}
       >
-        <div className="flex items-baseline gap-6 min-w-0">
-          <span className="text-mono text-[11px] uppercase tracking-wider2 text-ink-mute w-6 shrink-0">
+        <div className="flex items-baseline gap-5 min-w-0">
+          <span className="text-mono text-[12px] uppercase tracking-wider2 text-ink-mute w-7 shrink-0">
             {String(discipline.order).padStart(2, '0')}
           </span>
-          <h3 className="text-display text-3xl sm:text-4xl text-ink group-hover:text-moss transition-colors">
+          <h3 className="text-display text-2xl sm:text-3xl text-ink group-hover:text-moss transition-colors">
             {discipline.name}
           </h3>
           <span className="hidden sm:inline text-mono text-[11px] uppercase tracking-wider2 text-ink-mute">

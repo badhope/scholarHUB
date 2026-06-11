@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2026-06-11
+
+### Changed (visual & UX audit)
+
+- 首页精选资源改为横向滚动列(原 2 列网格 + 半空行),符合"期刊"风格。
+- 首页 Hero 搜索框描边由 2px 改为 1px,与全站 1px 描边体系一致。
+- 首页顶部 publication 刊号 / 底部三列介绍字号分别调整为 12px / 16px。
+- 详情页操作区按规范调整为 4 个等宽按钮:`Download` / `View DOI` / `Copy Cite` / `Save`,移除冗余的 `Source`,DOI 与外部链接缺一不可时回退到 `View Source`,并提供"Also: hostname" 次要链接。
+- 详情页摘要区去除多余的 `border-t hairline` 分割线。
+- 设置页选中指示由 4×20px 竖条改为 28×1.5px 短横线,符合"1.5px 墨绿短线"规范。
+- 资源卡片收藏按钮加大点击区至 32×32px;收藏夹页移除按钮同步加大。
+- 页脚版权字号由 10px 调整为 12px,提升可读性。
+- 学科导航卡片的序号字号、留白微调,断点下字号自适应。
+- 顶部搜索框的 `Enter` 提示替换为 `/` 键位标识。
+- 学科卡片与详情页摘要 / 预览按钮增加 `aria-expanded` / `aria-pressed`,无障碍性更佳。
+
 ## [1.0.0] - 2026-06-11
 
 ### Added

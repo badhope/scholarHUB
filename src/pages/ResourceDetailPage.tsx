@@ -130,7 +130,6 @@ export function ResourceDetailPage() {
             </p>
           </div>
         </div>
-        <div className="border-t hairline" />
         <div className="py-4 flex flex-wrap gap-2">
           <span className="text-mono text-[11px] uppercase tracking-wider2 text-ink-mute self-center mr-2">
             Tags
@@ -147,7 +146,7 @@ export function ResourceDetailPage() {
         </div>
       </section>
 
-      {/* 操作区 */}
+      {/* 操作区 - 4 个等宽按钮:跳转下载 / 跳转 DOI / 复制引用 / 加入收藏 */}
       <section className="mt-12 grid grid-cols-2 sm:grid-cols-4 gap-3">
         {resource.downloadUrl && (
           <a
@@ -160,7 +159,7 @@ export function ResourceDetailPage() {
             <Download size={14} /> Download
           </a>
         )}
-        {resource.doi && (
+        {resource.doi ? (
           <a
             href={`https://doi.org/${resource.doi}`}
             target="_blank"
@@ -170,8 +169,7 @@ export function ResourceDetailPage() {
           >
             <ArrowUpRight size={14} /> View DOI
           </a>
-        )}
-        {resource.externalUrl && (
+        ) : resource.externalUrl ? (
           <a
             href={resource.externalUrl}
             target="_blank"
@@ -179,9 +177,23 @@ export function ResourceDetailPage() {
             className="flex items-center justify-center gap-2 py-3 px-4 border rounded-[2px] text-mono text-[11px] uppercase tracking-wider2 text-ink-soft hover:text-ink hover:border-ink transition-colors"
             style={{ borderColor: 'var(--rule)' }}
           >
-            <ArrowUpRight size={14} /> Source
+            <ArrowUpRight size={14} /> View Source
           </a>
+        ) : (
+          <span
+            className="flex items-center justify-center gap-2 py-3 px-4 border rounded-[2px] text-mono text-[11px] uppercase tracking-wider2 text-ink-mute opacity-50 cursor-not-allowed"
+            style={{ borderColor: 'var(--rule)' }}
+          >
+            <ArrowUpRight size={14} /> No Link
+          </span>
         )}
+        <button
+          onClick={() => copy('apa', resource.citation.apa)}
+          className="flex items-center justify-center gap-2 py-3 px-4 border rounded-[2px] text-mono text-[11px] uppercase tracking-wider2 text-ink-soft hover:text-ink hover:border-ink transition-colors"
+          style={{ borderColor: 'var(--rule)' }}
+        >
+          <Copy size={14} /> Copy Cite
+        </button>
         <button
           onClick={onFav}
           className="flex items-center justify-center gap-2 py-3 px-4 border rounded-[2px] text-mono text-[11px] uppercase tracking-wider2 text-ink-soft hover:text-ink hover:border-ink transition-colors"
@@ -191,6 +203,21 @@ export function ResourceDetailPage() {
           {isFav ? 'Saved' : 'Save'}
         </button>
       </section>
+
+      {/* 外部链接(非主要资源时可作为额外入口) */}
+      {resource.externalUrl && resource.doi && resource.externalUrl !== resource.downloadUrl && (
+        <p className="mt-3 text-mono text-[11px] uppercase tracking-wider2 text-ink-mute">
+          Also:{' '}
+          <a
+            href={resource.externalUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="underline decoration-1 underline-offset-4 hover:text-moss"
+          >
+            {(() => { try { return new URL(resource.externalUrl).hostname } catch { return resource.externalUrl } })()}
+          </a>
+        </p>
+      )}
 
       {/* 引用生成 */}
       <section className="mt-12">
