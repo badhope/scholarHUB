@@ -2,10 +2,9 @@ cff-version: 1.2.0
 message: >-
   If you use this software in academic work, please cite it using the
   metadata below.
-title: scholarHUB
+title: ScholarHUB
 authors:
-  - family-names: badhope
-    given-names: badhope
+  - family-names: ScholarHUB Contributors
     alias: badhope
 identifiers:
   - type: url
@@ -16,11 +15,10 @@ url: https://github.com/badhope/scholarHUB
 repository-code: https://github.com/badhope/scholarHUB
 keywords:
   - academic
-  - badhope
-  - education
-  - nextjs
   - open-source
   - research
+  - aggregator
   - typescript
+  - react
 abstract: >-
-  学术资源聚合与检索 — 我的论文/教材/课程笔记目录。还在搭骨架, 但骨架已经比上礼拜多了。Next.js + SQLite FTS5, 先本地后服务。
+  An open shelf of papers, books, and datasets. ScholarHUB 聚合散落在各论文网站、出版社与公开数据平台的可下载资源,按学科与主题归类整理,提供一致的元数据与多格式引用。React 18 + TypeScript + Vite,GitHub Pages 静态托管。

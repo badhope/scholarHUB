@@ -1,46 +1,46 @@
 # ScholarHUB
 
-> **学术资源聚合与检索** — 我自己的论文 / 教材 / 课程笔记目录。
-> 当前还在搭骨架,**功能还没接上**;先把这 README 留着,
-> 给自己一个待办锚点。
+> An open shelf of papers, books, and datasets.
+>
+> 面向学生与科研小白的开放学术资源聚合检索站。
 
-不是"下一个 Z-Library",也不是"AI 论文总结器"。我只是想有个地方
-能把散落在硬盘各处的 PDF + 笔记 + 引用整在一起,搜索起来别那么
-难受。
+## 概述
 
----
+ScholarHUB 聚合散落在各论文网站、出版社与公开数据平台的可下载资源,按学科与主题归类整理。无需后端,无需登录,GitHub Pages 静态托管。
 
-## 计划做但还没做的
+## 技术栈
 
-- [ ] 文献元信息入库 (DOI / 标题 / 作者 / 会议或期刊 / 年份 / 标签)
-- [ ] 全文搜索 (PDF 提取 + SQLite FTS5)
-- [ ] 引用导出 (BibTeX / RIS / APA)
-- [ ] 笔记侧栏 (markdown, 跟 PDF 页码挂钩)
-- [ ] 多设备同步 (WebDAV 之类,先自托管)
-
-## 不打算做的
-
-- AI 总结 — 我读论文不是为了被总结
-- 全文下载 — 出版商有权利,我尊重
-- 评论 / 评分 — 一个人维护的目录,评分没意义
-- 公开检索 — 不打算做 Z-Library 的替代品
-
-## 技术栈 (暂定)
-
-- 前端:Next.js 15 (App Router) + TypeScript
-- 后端:同构 API route,SQLite (本地) → Postgres (生产)
-- PDF 渲染:PDF.js
-- 全文搜索:SQLite FTS5 (本地) / Meilisearch (可选)
+- React 18 + TypeScript + Vite 7
+- Tailwind CSS 3(自定义衬线主题)
+- React Router 6(HashRouter,适配 GitHub Pages)
+- Zustand(本地状态)
+- lucide-react(线性图标)
 
 ## 本地开发
 
 ```bash
 npm install
-npm run dev      # http://localhost:3000
-npm run build    # 生产构建
+npm run dev
 ```
+
+打开 <http://localhost:5173/scholarHUB/>。
+
+## 构建
+
+```bash
+npm run build
+```
+
+产物输出至 `dist/`。
+
+## 部署
+
+推送至 `main` 分支后,GitHub Actions 会自动构建并发布至 GitHub Pages。
+
+## 数据维护
+
+所有资源以 TypeScript 文件形式存放在 `src/data/` 目录,新增资源请编辑 `src/data/resources.ts`。
 
 ## 许可
 
-[MIT](LICENSE)
-
+本项目采用 MIT 协议发布,资源内容版权由各原作者与发布方所有。

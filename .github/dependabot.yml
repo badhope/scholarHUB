@@ -1,45 +1,16 @@
 version: 2
-
-# Dependabot configuration
-# - Single weekly schedule
-# - Auto-rebase to keep PRs current
-# - Production/development groups for clean batched PRs
-
 updates:
-  - package-ecosystem: "npm"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-    open-pull-requests-limit: 10
-    labels:
-      - "dependencies"
-      - "javascript"
-    commit-message:
-      prefix: "chore(deps)"
-      include: "scope"
-    rebase-strategy: "auto"
+  - package-ecosystem: npm
+    directory: /
+    schedule: weekly
     groups:
       production-dependencies:
-        dependency-type: "production"
+        dependency-type: production
       development-dependencies:
-        dependency-type: "development"
-
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-    open-pull-requests-limit: 10
-    labels:
-      - "dependencies"
-      - "ci"
+        dependency-type: development
+    open-pull-requests-limit: 5
     commit-message:
-      prefix: "ci"
-      include: "scope"
-    rebase-strategy: "auto"
-    groups:
-      production-dependencies:
-        dependency-type: "production"
-      development-dependencies:
-        dependency-type: "development"
+      prefix: deps
+    labels:
+      - dependencies
+      - automation
