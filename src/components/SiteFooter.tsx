@@ -66,7 +66,7 @@ export function SiteFooter() {
             </ul>
           </div>
         </div>
-        <p className="mt-10 text-mono text-[10px] uppercase tracking-wider2 text-ink-mute">
+        <p className="mt-10 text-mono text-[12px] uppercase tracking-wider2 text-ink-mute">
           © 2026 ScholarHUB · Content licensed under CC BY 4.0 unless otherwise noted.
         </p>
       </div>

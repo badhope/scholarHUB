@@ -57,8 +57,9 @@ export function SiteHeader() {
               onChange={(e) => setQ(e.target.value)}
               placeholder="搜索标题、作者、关键词"
               className="bg-transparent text-sm flex-1 placeholder:text-ink-mute"
+              aria-label="搜索"
             />
-            <span className="text-mono text-[10px] text-ink-mute">/  Enter</span>
+            <kbd className="text-mono text-[10px] text-ink-mute border border-rule rounded-[2px] px-1 py-0.5 leading-none">/</kbd>
           </form>
         </div>
 

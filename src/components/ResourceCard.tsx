@@ -50,8 +50,9 @@ export function ResourceCard({
         </Link>
         <button
           onClick={onFav}
-          className="shrink-0 p-1 text-ink-mute hover:text-moss transition-colors"
+          className="shrink-0 -m-2 p-2 text-ink-mute hover:text-moss transition-colors"
           aria-label={isFav ? '取消收藏' : '加入收藏'}
+          title={isFav ? '已收藏 · 点击移除' : '收藏'}
         >
           {isFav ? <BookmarkCheck size={16} /> : <Bookmark size={16} />}
         </button>

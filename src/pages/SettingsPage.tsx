@@ -73,12 +73,17 @@ function Section<T extends string>({ title, options, value, onChange }: SectionP
             <li key={o.value}>
               <button
                 onClick={() => onChange(o.value)}
-                className="w-full flex items-center gap-4 py-4 text-left group"
+                className="w-full flex items-baseline gap-4 py-4 text-left group"
+                aria-pressed={active}
               >
                 <span
-                  className={`shrink-0 w-1 h-5 transition-colors ${
-                    active ? 'bg-moss' : 'bg-transparent group-hover:bg-ink-mute'
+                  className={`shrink-0 self-center h-px transition-all ${
+                    active
+                      ? 'w-7 bg-moss'
+                      : 'w-0 bg-transparent group-hover:w-5 group-hover:bg-ink-mute'
                   }`}
+                  style={active ? { height: '1.5px' } : undefined}
+                  aria-hidden
                 />
                 <span className="flex-1">
                   <span className={`block text-[16px] ${active ? 'text-ink' : 'text-ink-soft'}`}>

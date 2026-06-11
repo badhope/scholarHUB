@@ -80,7 +80,7 @@ export function FavoritesPage() {
             <div key={r.id} className="relative">
               <button
                 onClick={() => remove(r.id)}
-                className="absolute -left-2 top-2 p-1.5 text-ink-mute hover:text-ochre transition-colors z-10"
+                className="absolute -left-1 -top-1 sm:left-2 sm:top-2 p-2 text-ink-mute hover:text-ochre transition-colors z-10"
                 aria-label="移除收藏"
                 title="移除"
               >
