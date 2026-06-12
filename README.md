@@ -2,45 +2,72 @@
 
 > An open shelf of papers, books, and datasets.
 >
-> 面向学生与科研小白的开放学术资源聚合检索站。
+> A community-curated index of open academic resources, organised by discipline and topic.
 
-## 概述
+## Overview
 
-ScholarHUB 聚合散落在各论文网站、出版社与公开数据平台的可下载资源,按学科与主题归类整理。无需后端,无需登录,GitHub Pages 静态托管。
+ScholarHUB aggregates freely-downloadable papers, textbooks, and public datasets
+scattered across preprint servers, publishers, and open data platforms. No
+backend, no login, no paywall — the site is a static SPA hosted on GitHub
+Pages, and the catalogue is plain data files in the repository.
 
-## 技术栈
+## Features
+
+- **8 pages** — Home, Resources list, Resource detail, Discipline, Search,
+  Favorites, Settings, About.
+- **6 disciplines** and **4 resource types** (papers, books, datasets,
+  tutorials), with seeded data you can browse end-to-end.
+- **Bilingual UI** — English by default with a one-click toggle to Chinese.
+- **Per-resource citations** in APA, MLA, GB/T 7714, and BibTeX with
+  one-click clipboard copy.
+- **Local-first favorites** — saved in `localStorage`, exportable as JSON.
+- **Three setting groups** — Theme (light / dark / auto), Font size
+  (standard / large), Motion (full / reduced / off), plus the language
+  toggle. All persist across sessions.
+- **Accessibility** — keyboard focus rings, `aria-expanded` / `aria-pressed`
+  on disclosure controls, `aria-label` on icon buttons, and `<html lang>`
+  synced to the active language.
+
+## Tech stack
 
 - React 18 + TypeScript + Vite 7
-- Tailwind CSS 3(自定义衬线主题)
-- React Router 6(HashRouter,适配 GitHub Pages)
-- Zustand(本地状态)
-- lucide-react(线性图标)
+- Tailwind CSS 3 with a custom serif theme (ink-black / paper-white /
+  moss / ochre palette)
+- React Router 6 (HashRouter, GitHub-Pages-friendly)
+- Zustand with `persist` middleware for settings & favorites
+- lucide-react icons
+- A tiny, dependency-free i18n layer (Context + typed dictionary + `useT()`)
 
-## 本地开发
+## Local development
 
 ```bash
 npm install
 npm run dev
 ```
 
-打开 <http://localhost:5173/scholarHUB/>。
+Open <http://localhost:5173/scholarHUB/>.
 
-## 构建
+## Build
 
 ```bash
 npm run build
 ```
 
-产物输出至 `dist/`。
+Output goes to `dist/`.
 
-## 部署
+## Deployment
 
-推送至 `main` 分支后,GitHub Actions 会自动构建并发布至 GitHub Pages。
+Pushing to `main` triggers a GitHub Actions workflow (`.github/workflows/deploy.yml`)
+that builds the project and publishes to GitHub Pages.
 
-## 数据维护
+## Data maintenance
 
-所有资源以 TypeScript 文件形式存放在 `src/data/` 目录,新增资源请编辑 `src/data/resources.ts`。
+Resources are TypeScript files in `src/data/`. To add a new entry, edit
+`src/data/resources.ts` following the existing shape; bilingual strings
+live in `src/i18n/dict.ts`.
 
-## 许可
+## License
 
-本项目采用 MIT 协议发布,资源内容版权由各原作者与发布方所有。
+This project is released under the MIT License. The resource metadata is
+licensed under CC BY 4.0; the underlying resources remain under their
+original licenses — see each detail page for attribution.
