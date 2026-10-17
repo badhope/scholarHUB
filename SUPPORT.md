@@ -34,4 +34,4 @@ ScholarHUB 仍处于 pre-alpha 阶段,以下是获取帮助与反馈问题的几
 
 ## 4. 授权与商用
 
-本仓库采用 [Apache-2.0 License](LICENSE),允许商业与非商业用途,无需单独授权。
+本仓库采用 [MIT License](LICENSE),允许商业与非商业用途,无需单独授权。

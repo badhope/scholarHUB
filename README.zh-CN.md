@@ -10,7 +10,7 @@
 
 **🌐 [English](README.md) · [简体中文](README.zh-CN.md)**
 
-[![License: Apache-2.0](https://img.shields.io/badge/license-Apache_2.0-blue.svg?style=flat-square)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg?style=flat-square)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.12+-3776AB.svg?logo=python&logoColor=white&style=flat-square)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.139-009688.svg?logo=fastapi&logoColor=white&style=flat-square)](https://fastapi.tiangolo.com/)
 [![React](https://img.shields.io/badge/React-19-61DAFB.svg?logo=react&logoColor=white&style=flat-square)](https://react.dev/)
@@ -114,4 +114,4 @@ cd apps/frontend && E2E_SPAWN_SERVER=1 npx playwright test
 
 ## License
 
-[Apache-2.0](LICENSE)
+[MIT](LICENSE)
