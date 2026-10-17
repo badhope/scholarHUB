@@ -7,6 +7,41 @@
 `apps/backend/pyproject.toml`、`apps/frontend/package.json`、`apps/backend/app/__init__.py`
 四处完全一致，由 `scripts/check-version.sh` 守门。
 
+## [0.2.2] — 2026-10-18
+
+安全加固版本，修完全部 9 项 P0（详见 `scholarhub-代码审计报告.md`）。
+
+### Security
+
+- **P0-1 移除 `/uploads` 静态挂载**：此前投稿上传的 PDF 以零鉴权静态目录对外提供，
+  任何匿名/跨租户用户拿到 `/uploads/<uuid>.pdf` 即可下载**未公开稿件**，
+  完全绕开 `GET /api/submissions/{id}/files` 的作者/编辑/审稿人鉴权。
+  现在稿件文件只经鉴权端点流出；已发表文章改走新增的公开端点
+  `GET /api/catalog/{id}/file`（只有进入公开目录的资源可读）。
+- **P0-2 PostgreSQL RLS 真正落地**（迁移 `c5a3e91b7d20`）：19 张租户表全部
+  `ENABLE` + `FORCE ROW LEVEL SECURITY` 并建 `tenant_isolation` 策略。
+  此前迁移里一条 RLS 语句都没有，文档宣称的"隔离第二层"并不存在。
+  配套修复 bootstrap 的 GUC 时序（改为两段会话，否则启动即 500）。
+  已在 PostgreSQL 17 上实测：无 GUC 时 fail-closed、跨租户读写双向隔离。
+- **P0-3 DOI 不再撞号**：默认后缀改为 `{resource_id}-{tenant_id 前 8 位}`
+  （原为全局自增 id，多租户下必然重复）；后缀加 `^[A-Za-z0-9._-]+$` 校验；
+  迁移 `b7f1c0d2a934` 为 `resources.doi` 与 `doi_registrations.doi` 补唯一约束。
+- **P0-4 双盲评审不再被击穿**：双盲下审稿人不再拿到原始 PDF（含作者姓名单位），
+  只放行编辑显式提供的匿名稿外链，否则明确报错由编辑补传。
+- **P0-5 编辑机密收口**：审稿人只能读取**自己**那份报告的 `comments_to_editor`，
+  此前任何有 assignment 的人（含仅受邀未接受者）都能看到全部报告的机密评论。
+- **P0-6 修复登录开放重定向**：`?redirect=` 现在只接受站内相对路径
+  （`safeInternalPath`），杜绝"登录成功→跳钓鱼站"。
+- **P0-7 CSRF cookie 下发接线**：`_ensure_csrf_cookie` 原为死代码，开启 CSRF
+  后所有写请求必然 403；现在在安全方法响应中下发。
+- **P0-8 CSP 与边缘安全头**：`frame-src` 改为 `frame-ancestors`（前者方向相反，
+  根本没防住点击劫持），补 `base-uri`/`form-action`；根 `Caddyfile` 补齐此前
+  完全缺失的安全响应头。
+
+### Tests
+
+- `test_doi.py` 中固化了旧（撞号）后缀格式的断言已更新为租户维度格式。
+
 ## [0.2.1] — 2026-10-18
 
 ### Changed

@@ -7,6 +7,29 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
+ * 把外部传入的跳转地址收敛成"仅站内相对路径"。
+ *
+ * 背景：`?redirect=` 完全由 URL 控制，直接喂给 router 会造成开放重定向——
+ * 攻击者推送 `/login?redirect=https://evil.example/phish`，受害者输入真实
+ * 凭据后"登录成功"被静默送到钓鱼站，可信度极高。
+ *
+ * 规则：必须以单个 `/` 开头且第二个字符不是 `/` 或 `\`（否则 `//evil.com`
+ * 会被浏览器当作协议相对 URL、`/\evil.com` 在部分浏览器同样外跳）。
+ * 其余一律回退到 fallback。
+ */
+export function safeInternalPath(
+  redirect: string | null | undefined,
+  fallback = '/dashboard',
+): string {
+  if (!redirect) return fallback
+  if (!redirect.startsWith('/')) return fallback
+  if (redirect.length > 1 && (redirect[1] === '/' || redirect[1] === '\\')) {
+    return fallback
+  }
+  return redirect
+}
+
+/**
  * 后端返回的时间是原始 ISO 字符串（如 `2026-09-14T14:21:51.181237Z`），
  * 直接渲染既难读又会撑破卡片布局，统一格式化后再展示。
  * 空值 / 非法值回退到 fallback，避免页面出现 "Invalid Date"。

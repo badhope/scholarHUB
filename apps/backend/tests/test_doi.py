@@ -461,7 +461,11 @@ async def test_status_returns_latest_registration(
     assert response.status_code == 200
     body = response.json()
     assert body["state"] == "completed"
-    assert body["doi"] == f"10.5072/{resource['id']}"
+    # 默认后缀现在带租户维度（``{resource_id}-{tenant_id 前8位}``）：
+    # resources.id 是全局自增，多租户下不同租户的同 id 资源会铸出同一个 DOI，
+    # 而 DOI 撞号不可撤销。见 P0-3。
+    assert body["doi"].startswith(f"10.5072/{resource['id']}-")
+    assert len(body["doi"]) > len(f"10.5072/{resource['id']}-")
     assert body["registered_at"] is not None
 
 

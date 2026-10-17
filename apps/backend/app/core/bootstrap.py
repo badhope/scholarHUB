@@ -26,6 +26,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.db import async_session_factory
+from app.core.tenant import TENANT_CONTEXT_VAR
 from app.core.logging import get_logger
 from app.core.security import hash_password
 from app.models import Role, Tenant, User, UserRole
@@ -102,8 +103,22 @@ async def run_bootstrap() -> None:
     """
     if settings.is_test:
         return
+
+    # 关键：RLS 落地（迁移 003，FORCE ROW LEVEL SECURITY）之后，连表属主也受
+    # 策略约束，而会话 GUC 是在**事务 BEGIN 之后**注入的（见
+    # app/core/db.py::_reissue_tenant_guc）。所以在同一个事务里改
+    # TENANT_CONTEXT_VAR 是无效的——租户已存在时 _ensure_bootstrap_tenant 会
+    # 提前 return、不提交，事务不结束，GUC 就一直是 NULL，后续写 users/roles
+    # 会被 RLS 全部拒绝（实测：启动直接 500 "new row violates row-level
+    # security policy for table users"）。
+    #
+    # 因此分两段会话：第一段只查/建租户（tenants 表没有 tenant_id，不受 RLS
+    # 约束），关闭后再带着租户 id 开第二段，让新事务 BEGIN 时设置正确的 GUC。
     async with async_session_factory() as session:
         tenant = await _ensure_bootstrap_tenant(session)
+
+    TENANT_CONTEXT_VAR.set(tenant.id)
+    async with async_session_factory() as session:
         await _ensure_admin_user(session, tenant)
         # Create the reviewer + editor roles the review workflow needs; the
         # admin is then granted both so operators can self-test the

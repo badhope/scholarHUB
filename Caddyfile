@@ -8,6 +8,18 @@
 {$SITE_DOMAIN} {
 	encode zstd gzip
 
+	# 安全响应头（补齐根 Caddyfile 此前完全缺失的部分，与 infra/Caddyfile 对齐）。
+	# 应用层中间件也会下发一份，这里是边缘层的第二道，防止反向代理配置被
+	# 误改后整站裸奔。
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "geolocation=(), microphone=(), camera=()"
+		-Server
+	}
+
 	# 健康检查直通，便于平台探活与 uptime 监控。
 	handle /api/health* {
 		reverse_proxy app:8080

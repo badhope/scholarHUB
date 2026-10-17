@@ -86,6 +86,21 @@ def _build_datacite_metadata(resource: Any, doi: str) -> dict[str, Any]:
     }
 
 
+def _default_suffix(resource: Any) -> str:
+    """默认 DOI 后缀：必须带租户维度。
+
+    ``resources.id`` 是**全局自增**，多租户部署下租户 A 的 #7 与租户 B 的 #7
+    会铸出同一个 DOI。DOI 是学术永久标识，撞号不可撤销，会直接污染引用与
+    DataCite 账目，所以默认后缀必须含租户标识。
+
+    ``tenant_id`` 缺失时（单测用的替身对象）退回纯 id，保证可测性。
+    """
+    tenant_id = getattr(resource, "tenant_id", None)
+    if tenant_id is None:
+        return str(resource.id)
+    return f"{resource.id}-{str(tenant_id)[:8]}"
+
+
 async def mint_doi(
     resource: Any,
     suffix: str | None = None,
@@ -101,7 +116,10 @@ async def mint_doi(
     if not datacite_enabled():
         return "", "failed"
 
-    doi_suffix = suffix or str(resource.id)
+    # 默认后缀必须带租户维度：resources.id 是**全局自增**，多租户部署下
+    # 租户 A 的 #7 和租户 B 的 #7 会铸出同一个 DOI。DOI 是学术永久标识，
+    # 撞号不可撤销，会直接污染引用与 DataCite 账目。
+    doi_suffix = suffix or _default_suffix(resource)
     doi = _build_doi(doi_suffix)
 
     try:

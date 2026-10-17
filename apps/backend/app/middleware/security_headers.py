@@ -37,10 +37,15 @@ class SecurityHeadersMiddleware:
                         ),
                         (
                             b"content-security-policy",
+                            # frame-ancestors 才是"谁能嵌入我"（点击劫持防护），
+                            # 之前的 frame-src 控制的是"我能嵌入谁"，方向相反、
+                            # 完全没有防住点击劫持；同时补 base-uri 与 form-action。
                             b"default-src 'self'; "
                             b"script-src 'self'; "
                             b"style-src 'self' 'unsafe-inline'; "
-                            b"frame-src 'self' https:; "
+                            b"frame-ancestors 'self'; "
+                            b"base-uri 'self'; "
+                            b"form-action 'self'; "
                             b"connect-src 'self'; "
                             b"img-src 'self' data: https:; "
                             b"font-src 'self' data:; "

@@ -259,17 +259,17 @@ for name, module_router in registry.all_routers():
 # SPA 深链接（如 /resources/1）回退到 index.html。这让整个应用
 # 以单端口 HTTP 服务部署到 Render/Railway/Fly/CF Tunnel 等平台，
 # 无需为前端单独开静态托管。未设置时行为与原来完全一致（纯 API）。
-# 稿件文件目录：投稿上传的 PDF 以 /uploads/<相对路径> 对外提供，
-# 阅读器与详情页下载直接引用（file_path 是 uuid 相对路径，入库前已做穿越校验）。
-# 必须注册在下方 SPA catch-all 之前，否则 /uploads/* 会被前端兜底路由吞掉。
-_uploads_dir = Path(settings.storage_path).resolve()
-if _uploads_dir.is_dir():
-    app.mount(
-        "/uploads",
-        StaticFiles(directory=str(_uploads_dir)),
-        name="uploads",
-    )
-    logger.info("uploads_serving_enabled", uploads_dir=str(_uploads_dir))
+# 稿件文件目录：**故意不做静态挂载**。
+#
+# 这里曾经把 storage_path 以 StaticFiles 挂在 /uploads 上，任何人（含匿名、
+# 含其他租户）拿到 /uploads/<uuid>.pdf 就能下载尚未公开的在审稿件，
+# 完全绕开 GET /api/submissions/{id}/files 里的作者/编辑/审稿人鉴权。
+# 早期唯一的"保护"是 UUID 不可猜测，而链接会通过邮件、浏览器历史、
+# Referer、前端 props 持续扩散，等于对核心资产（未发表手稿）开放越权读取。
+#
+# 现在稿件文件只经鉴权端点流出（本地后端流式返回，S3 后端走短时预签名 302），
+# 与 app/core/storage.py 的约定一致：本地文件绝不直连。
+# 若确需直连，必须改为带 HMAC 过期签名的短时 URL 中间件，不得再裸挂目录。
 
 # 注意：catch-all 必须注册在 root() 之前（否则 / 被 root 抢走）、
 # 在所有 API/docs/health 路由之后（具体路由按注册顺序优先匹配）。

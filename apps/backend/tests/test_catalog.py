@@ -15,7 +15,9 @@ _SAMPLE = {
     "tags": ["test", "pytest"],
     "abstract": "This is a test abstract.",
     "preview": "Test preview text.",
-    "doi": "10.1234/test.1",
+    # DOI 现在有唯一约束（迁移 002），同一份夹具多次创建会撞号；
+    # 需要唯一 DOI 的用例自行覆盖，这里留空。
+    "doi": None,
     "volume": "10",
     "issue": "2",
     "pages": "1-20",
@@ -46,7 +48,7 @@ async def test_create_returns_201(client: AsyncClient, admin_user: dict) -> None
     assert body["title"] == "A Test Paper"
     assert body["authors"] == ["Alice Author", "Bob Reviewer"]
     assert body["discipline"] == "computer-science"
-    assert body["doi"] == "10.1234/test.1"
+    assert body["doi"] is None
     assert "created_at" in body
     assert "updated_at" in body
 

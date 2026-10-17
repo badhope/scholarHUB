@@ -116,9 +116,10 @@ async def _materialize_resource_from_submission(
     rather than re-routing through the HTTP layer to keep it
     transactional with the review commit.
     """
-    # 本地稿件文件：投稿上传的 PDF 通过 /uploads 静态路由对外提供。
-    # 作者未填外部下载链接时，用本地托管地址兜底，保证稿件接受后立即能读。
-    local_file_url = f"/uploads/{submission.file_path}" if submission.file_path else None
+    # 本地稿件文件：不再使用 /uploads 静态路径（该挂载无鉴权，任何人都能
+    # 下载在审稿件，见 app/main.py 的说明）。改为物化后在下方写入指向
+    # 公开端点 /api/catalog/{id}/file 的 download_url——只有进入公开目录的
+    # 资源才能读到文件，未公开的投稿仍然只走鉴权端点。
     resource = Resource(
         tenant_id=submission.tenant_id,
         type=submission.type,
@@ -131,7 +132,8 @@ async def _materialize_resource_from_submission(
         tags=submission.tags,
         abstract=submission.abstract,
         preview=submission.preview,
-        download_url=submission.download_url or local_file_url,
+        # download_url 在 flush 拿到 id 后回填（见下方），此处先留空。
+        download_url=submission.download_url,
         external_url=submission.external_url,
         doi=submission.doi,
         # 物化时把 submission 的 keywords 带过去，与 catalog.Resource 对齐。
@@ -141,6 +143,10 @@ async def _materialize_resource_from_submission(
     )
     db.add(resource)
     await db.flush()
+    if not resource.download_url and submission.file_path:
+        # 稿件带着本地上传文件时，暴露一个"只读已发表资源"的公开端点，
+        # 而不是把 storage 目录整个挂出去。阅读器（pdf.js）与详情页都走它。
+        resource.download_url = f"/api/catalog/{resource.id}/file"
     # 同步全文索引（best-effort）。即使后续事务回滚产生幽灵文档也无害：
     # 搜索路由按 id 回读 DB，查不到的命中会被静默丢弃。
     await fulltext.index_resource(resource)
@@ -844,23 +850,26 @@ async def list_review_reports(
             )
 
     rows = (
-        (
-            await db.execute(
-                select(ReviewReport)
-                .join(ReviewAssignment, ReviewReport.assignment_id == ReviewAssignment.id)
-                .where(
-                    ReviewAssignment.submission_id == entry.id,
-                    ReviewReport.tenant_id == entry.tenant_id,
-                    ReviewAssignment.status == "completed",
-                )
+        await db.execute(
+            select(ReviewReport, ReviewAssignment.reviewer_id)
+            .join(ReviewAssignment, ReviewReport.assignment_id == ReviewAssignment.id)
+            .where(
+                ReviewAssignment.submission_id == entry.id,
+                ReviewReport.tenant_id == entry.tenant_id,
+                ReviewAssignment.status == "completed",
             )
         )
-        .scalars()
-        .all()
-    )
+    ).all()
 
     out: list[ReviewReportResponse] = []
-    for r in rows:
+    for r, reviewer_id in rows:
+        # 审稿人（非编辑非作者）：只能看**自己**那一份报告。
+        # 修复前的代码让任何有 assignment 的人落进 else 分支，把该稿件全部
+        # 已完成报告的 comments_to_editor（编辑机密）原样返回——甚至包括
+        # 只是被邀请、尚未接受邀请的审稿人。编辑机密改为显式白名单。
+        if is_reviewer and not is_editor and not is_author:
+            if reviewer_id != current_user.id:
+                continue
         # 作者：剥离 editor-only comments
         if is_author and not is_editor:
             out.append(
@@ -1248,6 +1257,35 @@ async def download_submission_file(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You do not have access to this submission file",
         )
+
+    # 双盲评审：原始上传文件不能交给审稿人。
+    #
+    # 修复前，双盲只在 JSON 字段上做抹除（authors/邮箱/submitted_by/venue/doi），
+    # 文件下载端点却把**原始 PDF** 直接返回给被指派的审稿人——标题页和 PDF
+    # 元数据里就是作者姓名与单位，双盲在核心流程上等于不存在。
+    #
+    # 现在的规则：双盲 + 审稿人（非作者/编辑）时，只放行编辑显式提供的
+    # 匿名稿外链（download_url，且必须是 http/https）；没有匿名稿则明确报错，
+    # 由编辑补上传。服务端不具备剥离 PDF 元数据的能力，不假装能做到。
+    is_privileged = entry.submitted_by == current_user.id or await user_has_role(
+        db, current_user, ROLE_EDITOR
+    )
+    if not is_privileged:
+        from app.modules.review.blinding import get_review_mode
+
+        mode = await get_review_mode(db, entry.tenant_id)
+        if mode == "double_blind":
+            anon_url = (entry.download_url or "").strip()
+            if anon_url.lower().startswith(("http://", "https://")):
+                return RedirectResponse(anon_url, status_code=status.HTTP_302_FOUND)
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=(
+                    "Double-blind review is enabled: the original manuscript may reveal "
+                    "author identity. Ask the editor to provide an anonymized version "
+                    "(download_url) before reviewing."
+                ),
+            )
 
     storage = get_storage()
     url = storage.presigned_url(entry.file_path)

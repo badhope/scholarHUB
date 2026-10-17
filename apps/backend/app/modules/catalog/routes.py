@@ -10,7 +10,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi.responses import Response
 from sqlalchemy import desc, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -190,6 +191,108 @@ async def get_facets(
     return ResourceFacets(
         years=years,
         tags=[FacetBucket(value=t, count=c) for t, c in tags_sorted],
+    )
+
+
+@router.get("/{resource_id}/file")
+async def download_resource_file(
+    resource_id: int,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+) -> Response:
+    """流式返回**已发表**资源的文件（公开可读，无需登录）。
+
+    这是替代原 `/uploads` 静态挂载的通道。区别是：
+    - 只有已经进入公开目录（catalog）的资源才能在这里读到文件；
+    - 尚未公开的在审稿件，仍然只能走鉴权端点 `GET /api/submissions/{id}/files`。
+
+    换句话说，"发表"这个文件动作本身就是授权边界：物化进目录才公开。
+    """
+    import mimetypes
+
+    from fastapi.responses import RedirectResponse, StreamingResponse
+
+    from app.core.storage import get_storage
+
+    tenant_id = require_tenant_id()
+    result = await db.execute(
+        select(Resource).where(
+            Resource.id == resource_id,
+            Resource.tenant_id == tenant_id,
+        )
+    )
+    resource = result.scalar_one_or_none()
+    if resource is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Resource not found")
+
+    # 延迟导入避免与 submission 模块形成循环依赖（submission 依赖 catalog）。
+    from app.modules.submission.models import Submission
+
+    submission = (
+        (
+            await db.execute(
+                select(Submission).where(
+                    Submission.resource_id == resource_id,
+                    Submission.tenant_id == tenant_id,
+                )
+            )
+        )
+        .scalars()
+        .first()
+    )
+    if submission is None or not submission.file_path:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="This resource has no downloadable file",
+        )
+
+    storage = get_storage()
+    url = storage.presigned_url(submission.file_path)
+    if url:
+        return RedirectResponse(url, status_code=status.HTTP_302_FOUND)
+
+    try:
+        data = await storage.load(submission.file_path)
+    except FileNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Stored file is missing"
+        ) from exc
+
+    filename = submission.file_path.rsplit("/", 1)[-1]
+    media_type = mimetypes.guess_type(filename)[0] or "application/octet-stream"
+
+    range_header = request.headers.get("Range")
+    if range_header and range_header.startswith("bytes="):
+        spec = range_header[len("bytes=") :]
+        try:
+            if "-" in spec:
+                start_s, end_s = spec.split("-", 1)
+                start = int(start_s) if start_s else 0
+                end = int(end_s) if end_s else len(data) - 1
+            else:
+                start = int(spec)
+                end = len(data) - 1
+            start = max(start, 0)
+            end = min(end, len(data) - 1)
+            if start > end or start >= len(data):
+                raise ValueError("invalid range")
+            chunk = data[start : end + 1]
+            return Response(
+                content=chunk,
+                status_code=status.HTTP_206_PARTIAL_CONTENT,
+                media_type=media_type,
+                headers={
+                    "Content-Range": f"bytes {start}-{end}/{len(data)}",
+                    "Accept-Ranges": "bytes",
+                },
+            )
+        except ValueError:
+            pass  # Range 非法 → 退回 200 全量
+
+    return StreamingResponse(
+        iter([data]),
+        media_type=media_type,
+        headers={"Accept-Ranges": "bytes"},
     )
 
 

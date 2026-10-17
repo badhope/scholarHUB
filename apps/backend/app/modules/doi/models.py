@@ -34,7 +34,9 @@ class DOIRegistration(Base, TenantScopedMixin):
         index=True,
     )
     # The DOI that was registered (e.g. "10.12345/abc-def-ghi").
-    doi: Mapped[str] = mapped_column(String(200), nullable=False, index=True)
+    # DOI 天然是全局唯一标识。此前只有 index 而非 unique，多租户/同租户内
+    # 都能铸出重复 DOI 且无任何拦截（见 P0-3）。
+    doi: Mapped[str] = mapped_column(String(200), nullable=False, index=True, unique=True)
     # Registration state: "pending" | "completed" | "failed"
     state: Mapped[str] = mapped_column(String(20), nullable=False, default="pending")
     # DataCite API response / error message.

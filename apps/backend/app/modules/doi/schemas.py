@@ -14,7 +14,11 @@ class DOIRegisterRequest(BaseModel):
     resource_id: int = Field(ge=1, description="ID of the catalog resource to mint a DOI for")
     # Optional: override the auto-generated DOI suffix. If omitted, the
     # server generates one (e.g. from the resource slug or id).
-    doi_suffix: str | None = Field(default=None, max_length=100)
+    # DOI 后缀必须是 URL 安全字符。此前只限制长度，管理员可以填任意字符串
+    # （甚至含空格与斜杠），既会污染 DataCite 元数据，也让撞号更难发现。
+    doi_suffix: str | None = Field(
+        default=None, max_length=100, pattern=r"^[A-Za-z0-9._-]+$"
+    )
 
 
 class DOIRegistrationResponse(BaseModel):

@@ -83,7 +83,13 @@ class CSRFMiddleware(BaseHTTPMiddleware):
         if not settings.csrf_enabled:
             return await call_next(request)
         if request.method not in _UNSAFE_METHODS:
-            return await call_next(request)
+            # 安全方法（GET/HEAD/OPTIONS）在响应里下发 csrf cookie。
+            # 修复前 _ensure_csrf_cookie 从未被调用（死代码），客户端没有任何
+            # 途径拿到 cookie，于是一旦 csrf_enabled=True，所有受保护的写请求
+            # 都会 403 —— 刷新、登出全挂，等于"开了就坏"。
+            response = await call_next(request)
+            _ensure_csrf_cookie(response)
+            return response
         if not any(request.url.path.startswith(p) for p in _PROTECTED_PREFIXES):
             return await call_next(request)
 
