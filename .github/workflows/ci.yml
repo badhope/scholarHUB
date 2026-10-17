@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v10.2.0
         with:
-          version: "0.12.18"
+          version: "0.13.1"
       - name: Version consistency
         # 脚本在仓库根 scripts/（job 的 working-directory 是 apps/backend），
         # 脚本内部会 cd 到仓库根再做四路版本比对。
@@ -77,7 +77,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v10.2.0
         with:
-          version: "0.12.18"
+          version: "0.13.1"
       - name: Sync dependencies
         run: uv sync --group dev --locked
       # `upgrade head` (singular) fails on multiple head revisions, so this
@@ -142,7 +142,7 @@ jobs:
           cache-dependency-path: apps/frontend/package-lock.json
       - uses: astral-sh/setup-uv@v10.2.0
         with:
-          version: "0.12.18"
+          version: "0.13.1"
       - name: Install frontend deps
         run: npm ci
       - name: Sync backend deps
@@ -178,7 +178,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v10.2.0
         with:
-          version: "0.12.18"
+          version: "0.13.1"
       - name: Sync dependencies
         run: uv sync --group dev --locked
       - name: Bandit static scan
