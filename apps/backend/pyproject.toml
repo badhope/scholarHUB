@@ -1,6 +1,6 @@
 [project]
 name = "scholarhub-backend"
-version = "0.2.0"
+version = "0.2.1"
 description = "ScholarHUB backend — modular multi-tenant academic platform base"
 # Python 版本锁定在 3.12 系列：与 .python-version、Dockerfile、CI 完全一致
 requires-python = ">=3.12,<3.13"
